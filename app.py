@@ -122,6 +122,15 @@ def logout():
   session.pop("user_id", None)
   return jsonify({"message": "Đăng xuất thành công"}), 200
 
+@app.route("/api/me", methods=["GET"])
+def get_current_user():
+  if "user_id" not in session:
+    return jsonify({"message": "Chưa đăng nhập"}), 401
+  user = User.query.get(session["user_id"])
+  if not user:
+    return jsonify({"message": "Người dùng không tồn tại"}), 404
+  return jsonify({"user": user.to_dict()}), 200
+
 if __name__ == "__main__":
   with app.app_context():
     db.create_all()  #tao cac bang trong db neu chua co
