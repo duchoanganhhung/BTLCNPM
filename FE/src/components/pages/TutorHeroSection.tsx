@@ -7,7 +7,7 @@ export function TutorHeroSection() {
       className="relative h-[500px] bg-cover bg-center"
       style={{
         backgroundImage:
-          "url('https://images.unsplash.com/photo-1706016899218-ebe36844f70e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx1bml2ZXJzaXR5JTIwY2FtcHVzJTIwYnVpbGRpbmd8ZW58MXx8fHwxNzYxNTcxODA1fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral')",
+         "url('https://images2.thanhnien.vn/Uploaded/dieutrangqc/2022_11_09/1-mot-goc-dh-bach-khoa-tphcm-1066.jpg')",
       }}
     >
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/50" />

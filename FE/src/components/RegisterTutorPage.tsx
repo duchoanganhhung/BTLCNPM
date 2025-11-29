@@ -25,7 +25,7 @@ export default function RegisterStudentPage({ onBack }: RegisterStudentPageProps
     }
 
     try {
-      const res = await fetch("/api/register/student", {
+      const res = await fetch("/api/register/tutor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, fullname, password }),
@@ -50,7 +50,7 @@ export default function RegisterStudentPage({ onBack }: RegisterStudentPageProps
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-          Đăng ký tài khoản Sinh viên
+          Đăng ký tài khoản Giảng viên
         </h2>
 
         {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}

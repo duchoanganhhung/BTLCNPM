@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -7,29 +7,16 @@ import LogoBK from "../assets/bklogo.png";
 
 interface LoginPageProps {
   onLogin: (role: "student" | "tutor" | "admin") => void;
+  onNavigateRegister: (type: "student" | "tutor") => void;
 }
 
-export default function LoginPage({ onLogin }: LoginPageProps) {
+export default function LoginPage({ onLogin, onNavigateRegister }: LoginPageProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  //xong student hoặc tutor view thì uncommment useEffect này
-
-  useEffect(() => {
-    fetch("/api/me", { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          const role = data.user.role === "student" ? "student" : "tutor";
-          onLogin(role);
-        }
-      })
-      .catch(() => {});
-  }, [onLogin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,20 +32,21 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     }
 
     if (username === "admin" && password === "admin") {
-      onLogin("admin");          
+      onLogin("admin");
       setIsLoading(false);
       return;
     }
     if (username === "student" && password === "student") {
-      onLogin("student");          
+      onLogin("student");
       setIsLoading(false);
       return;
     }
     if (username === "tutor" && password === "tutor") {
-      onLogin("tutor");          
+      onLogin("tutor");
       setIsLoading(false);
       return;
     }
+
     try {
       const response = await fetch("/api/login", {
         method: "POST",
@@ -70,47 +58,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("Đăng nhập thành công:", data.user);
-        onLogin(data.user.role);  
+        onLogin(data.user.role);
         return;
       }
 
-      // user ko tồn tại thì tự động đky với role = "student"
-      // cái này chỉ để test, ae bỏ đi r làm register riêng
-      if (data.message.includes("không đúng") || data.message.includes("không tồn tại")) {
-        console.log("Tài khoản chưa tồn tại → Đang tự động đăng ký...");
-
-        const registerResponse = await fetch("/api/register/student", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            username,
-            password,
-            fullname: "Sinh viên",
-          }),
-        });
-
-        if (registerResponse.ok) {
-          const loginAgain = await fetch("/api/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ username, password }),
-          });
-
-          if (loginAgain.ok) {
-            const finalData = await loginAgain.json();
-            console.log("Đăng ký + Đăng nhập thành công:", finalData.user);
-            onLogin("student");
-          }
-        } else {
-          const regError = await registerResponse.json();
-          setUsernameError(regError.message || "Đăng ký thất bại");
-        }
-      } else {
-        setPasswordError(data.message || "Đăng nhập thất bại");
-      }
+      setPasswordError(data.message || "Đăng nhập thất bại");
     } catch (err) {
       console.error("Lỗi kết nối:", err);
       setUsernameError("Không thể kết nối đến máy chủ");
@@ -206,10 +158,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 {isLoading ? "Đang xử lý..." : "Đăng nhập"}
               </Button>
             </div>
+
+            {/* Nút đăng ký */}
             <div className="pt-2">
               <Button
                 type="button"
-                onClick={()=> alert}   // Sau thay bằng onRegister()
+                onClick={() => onNavigateRegister("student")}
                 className="w-full bg-white border border-blue-500 text-blue-600 hover:bg-blue-50"
               >
                 Tạo tài khoản cho sinh viên
@@ -218,14 +172,15 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <div className="pt-2">
               <Button
                 type="button"
-                onClick={()=> alert}   // Sau thay bằng onRegister()
+                onClick={() => onNavigateRegister("tutor")}
                 className="w-full bg-white border border-blue-500 text-blue-600 hover:bg-blue-50"
               >
                 Tạo tài khoản cho giảng viên
               </Button>
             </div>
+
             <div className="text-center text-sm text-gray-600">
-              <p>Nếu chưa có tài khoản, hệ thống sẽ tự động đăng ký</p>
+              <p>Vui lòng tạo tài khoản nếu bạn chưa có</p>
             </div>
           </form>
         </div>
