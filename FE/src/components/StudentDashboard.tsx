@@ -37,6 +37,7 @@ import { TutorProfile } from "./pages/TutorProfile";
 import { TeachingRegistration } from "./pages/TeachingRegistration";
 
 import { Toaster } from "./ui/sonner";
+import { TutorFooter } from "./pages/TutorFooter";
 
 interface StudentDashboardProps {
   onLogout: () => void;
@@ -147,6 +148,12 @@ export default function StudentDashboard({ onLogout }: StudentDashboardProps) {
               <ScheduleTable />
             </>
           )}
+          {mode === "tutor" && activeMenu === "home" && (
+            <>
+              <TutorHeroSection />
+              <TutorFooter />
+            </>
+          )}
           {mode === "student" && activeMenu === "academic" && <AcademicManagement />}
           {mode === "student" && activeMenu === "schedule" && <MySchedule />}
           {mode === "student" && activeMenu === "registration" && <CourseRegistration />}
@@ -154,7 +161,7 @@ export default function StudentDashboard({ onLogout }: StudentDashboardProps) {
           {mode === "student" && activeMenu === "profile" && <Profile />}
           {mode === "student" && activeMenu === "documents" && <Documents />}
 
-          {mode === "tutor" && activeMenu === "home" && <TutorHeroSection />}
+          
           {mode === "tutor" && activeMenu === "classes" && <TutorClasses />}
           {mode === "tutor" && activeMenu === "schedule" && <TutorSchedule />}
           {mode === "tutor" && activeMenu === "registration" && <TeachingRegistration />}

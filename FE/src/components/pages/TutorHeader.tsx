@@ -1,4 +1,4 @@
-import { Bell, MessageCircle, ChevronDown } from "lucide-react";
+import { Bell, MessageCircle, ChevronDown,User } from "lucide-react";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -21,10 +21,9 @@ interface TutorHeaderProps {
   onNavigate: (page: "home" | "classes" | "schedule" | "documents" | "profile" | "registration" | "feedback") => void;
   currentPage: "home" | "classes" | "schedule" | "documents" | "profile" | "registration" | "feedback";
   onOpenChat: () => void;
-  onSwitchMode: () => void;
 }
 
-export function TutorHeader({ onNavigate, currentPage, onOpenChat, onSwitchMode }: TutorHeaderProps) {
+export function TutorHeader({ onNavigate, currentPage, onOpenChat}: TutorHeaderProps) {
   return (
     <header className="bg-[#3BA5DB] text-white">
       <div className="container mx-auto px-4">
@@ -33,9 +32,8 @@ export function TutorHeader({ onNavigate, currentPage, onOpenChat, onSwitchMode 
           <div className="flex items-center gap-8">
             <button
               onClick={() => onNavigate("home")}
-              className="text-white rounded-lg px-3 py-2 flex items-center justify-center hover:opacity-90 transition-opacity"
             >
-              <img src="assets/logo.png" alt="BK Logo" className="h-10 w-auto" />
+              <img src = "/Images/hcmut.png" alt = "Logo HCMUT" className = "h-12 w-auto"/>
             </button>
 
             {/* Navigation */}
@@ -62,7 +60,7 @@ export function TutorHeader({ onNavigate, currentPage, onOpenChat, onSwitchMode 
                   currentPage === "schedule" ? "underline" : ""
                 }`}
               >
-                Đăng ký lịch rảnh
+                Quản lý lịch dạy
               </button>
               <button
                 onClick={() => onNavigate("registration")}
@@ -87,7 +85,7 @@ export function TutorHeader({ onNavigate, currentPage, onOpenChat, onSwitchMode 
           <div className="flex items-center gap-4">
             {/* Notifications */}
             <Popover>
-              <PopoverTrigger asChild>
+              <PopoverTrigger >
                 <Button
                   variant="ghost"
                   size="icon"
@@ -106,7 +104,7 @@ export function TutorHeader({ onNavigate, currentPage, onOpenChat, onSwitchMode 
 
             {/* Messages */}
             <Popover>
-              <PopoverTrigger asChild>
+              <PopoverTrigger >
                 <Button
                   variant="ghost"
                   size="icon"
@@ -124,15 +122,16 @@ export function TutorHeader({ onNavigate, currentPage, onOpenChat, onSwitchMode 
             </Popover>
             
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger >
                 <Button
                   variant="ghost"
                   size="icon"
                   className="text-white hover:bg-white/10"
                 >
                   <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                    <span className="text-[#3BA5DB] text-sm">B</span>
+                    <User className="h-5 w-5 text-[#3BA5DB]" />
                   </div>
+                  <ChevronDown className="h-4 w-4 text-white" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -142,11 +141,6 @@ export function TutorHeader({ onNavigate, currentPage, onOpenChat, onSwitchMode 
                   Hồ sơ cá nhân
                 </DropdownMenuItem>
                 <DropdownMenuItem>Cài đặt</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onSwitchMode}>
-                  Chuyển sang chế độ Sinh viên
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-red-600">
                   Đăng xuất
                 </DropdownMenuItem>
