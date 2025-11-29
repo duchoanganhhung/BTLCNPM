@@ -206,7 +206,24 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 {isLoading ? "Đang xử lý..." : "Đăng nhập"}
               </Button>
             </div>
-
+            <div className="pt-2">
+              <Button
+                type="button"
+                onClick={()=> alert}   // Sau thay bằng onRegister()
+                className="w-full bg-white border border-blue-500 text-blue-600 hover:bg-blue-50"
+              >
+                Tạo tài khoản cho sinh viên
+              </Button>
+            </div>
+            <div className="pt-2">
+              <Button
+                type="button"
+                onClick={()=> alert}   // Sau thay bằng onRegister()
+                className="w-full bg-white border border-blue-500 text-blue-600 hover:bg-blue-50"
+              >
+                Tạo tài khoản cho giảng viên
+              </Button>
+            </div>
             <div className="text-center text-sm text-gray-600">
               <p>Nếu chưa có tài khoản, hệ thống sẽ tự động đăng ký</p>
             </div>

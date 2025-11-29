@@ -14,3 +14,10 @@
   sửa Tutor ở trong src/components/pages/ file.tsx cần sửa
   thêm code vào TutorDashboard.tsx
   chú ý đang bị lỗi mất màu :))) con vợ làm tutor fix cái 
+
+  chạy be
+  python -m venv .venv
+  .venv\Scripts\Activate.ps1
+  python.exe -m pip install --upgrade pip
+  cd be     
+  python app.py

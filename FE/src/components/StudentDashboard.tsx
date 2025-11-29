@@ -82,63 +82,63 @@ export default function StudentDashboard({ onLogout }: StudentDashboardProps) {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* ----- SIDEBAR ----- */}
-      <aside className={`${sidebarOpen ? "w-64" : "w-0"} bg-[#1a95dc] text-white transition-all duration-300 overflow-hidden`}>
-        <div className="p-6 flex items-center justify-between border-b border-white/20">
-          <h1 className="text-lg font-semibold">{mode === "student" ? "Student Portal" : "Tutor Portal"}</h1>
-        </div>
-
-        <nav className="p-4">
-          <ul className="space-y-2">
-            {menuList.map(item => (
-              <li key={item.id}>
-                <button
-                  onClick={() => setActiveMenu(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-                    activeMenu === item.id ? "bg-white text-[#1a95dc]" : "hover:bg-white/10"
-                  }`}
-                >
-                  <item.icon className="w-5 h-5" />
-                  {item.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        {/* Mode Switch */}
-        <div className="p-4 border-t border-white/20">
-          <button
-            onClick={switchMode}
-            className="w-full px-4 py-3 flex items-center gap-3 rounded-lg bg-white text-[#1a95dc]"
-          >
-            {mode === "student" ? <GraduationCap /> : <UserCircle />}
-            {mode === "student" ? "Chuyển sang Giảng viên" : "Chuyển sang Sinh viên"}
-          </button>
-        </div>
-
-        {/* Logout */}
-        <div className="p-4 border-t border-white/20">
-          <button
-            onClick={() => setShowLogoutDialog(true)}
-            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10"
-          >
-            <LogOut className="w-5 h-5" />
-            Đăng xuất
-          </button>
-        </div>
-      </aside>
-
+    <div className="flex h-screen bg-gray-100">  
       {/* ----- MAIN CONTENT ----- */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-white border-b px-6 py-4 flex items-center justify-between">
-          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            {sidebarOpen ? <X /> : <Menu />}
-          </Button>
-          <h2 className="text-lg font-semibold">{mode === "student" ? "Student Dashboard" : "Tutor Dashboard"}</h2>
-        </header>
+  <header className="bg-[#1a95dc] px-6 py-4 flex items-center justify-between shadow">
+  {/* Left side: Logo + Menu */}
+  <div className="flex items-center gap-6">
+
+    {/* Logo */}
+   <img 
+      src="src/assets/bklogo.png" 
+      alt="Logo" 
+      className="h-10 w-auto object-contain"
+    />
+
+    {/* Horizontal Menu */}
+    <nav>
+      <ul className="flex items-center gap-4">
+        {menuList.map(item => (
+          <li key={item.id}>
+            <button
+              onClick={() => setActiveMenu(item.id)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md transition
+                ${activeMenu === item.id 
+                  ? "bg-[#1a95dc] text-white" 
+                  : "hover:bg-gray-100"}`}
+            >
+              <item.icon className="w-4 h-4" />
+              {item.label}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+
+  {/* Right side: Mode Switch + Logout */}
+  <div className="flex items-center gap-3">
+    <Button
+      onClick={switchMode}
+      className="flex items-center gap-2 px-4 py-2 bg-[#1a95dc] text-white"
+    >
+      {mode === "student" ? <GraduationCap /> : <UserCircle />}
+      {mode === "student" ? "Giảng viên" : "Sinh viên"}
+    </Button>
+
+    <Button
+      variant="ghost"
+      onClick={() => setShowLogoutDialog(true)}
+      className="flex items-center gap-2"
+    >
+      <LogOut className="w-4 h-4" />
+      Đăng xuất
+    </Button>
+  </div>
+</header>
+
 
         <main className="flex-1 overflow-y-auto p-6">
           {mode === "student" && activeMenu === "home" && (
