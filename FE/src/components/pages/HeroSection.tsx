@@ -6,7 +6,7 @@ export function HeroSection() {
     <div className="relative h-[500px] overflow-hidden">
       {/* Background Image */}
       <ImageWithFallback
-        src="https://images.unsplash.com/photo-1618255630366-f402c45736f6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx1bml2ZXJzaXR5JTIwYnVpbGRpbmclMjBjYW1wdXN8ZW58MXx8fHwxNzYxMTIxOTUyfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+        src=          'https://images2.thanhnien.vn/Uploaded/dieutrangqc/2022_11_09/1-mot-goc-dh-bach-khoa-tphcm-1066.jpg'
         alt="Trường Đại Học Bách Khoa"
         className="w-full h-full object-cover"
       />

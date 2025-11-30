@@ -292,6 +292,252 @@ def unregister_class():
     
     return jsonify({"message": "Hủy đăng ký thành công"}), 200
 
+#---API của Tutor---#
+
+@app.route("/api/classes", methods=["GET"])
+def list_classes():
+  """
+  GET /api/classes?role=tutor&teacher_id=1
+  GET /api/classes?role=student
+  """
+  role = request.args.get("role")
+  teacher_id = request.args.get("teacher_id", type=int)
+
+  if role == "tutor" and teacher_id:
+      classes = CourseClass.query.filter_by(teacher_id=teacher_id).all()
+  else:
+      classes = CourseClass.query.all()
+
+  result = []
+  for cls in classes:
+      obj = cls.to_dict()
+      enrolled = len(cls.registrations)
+      max_students = cls.max_students or 0
+      status = "open"
+      if max_students and enrolled >= max_students:
+          status = "full"
+      obj["enrolled"] = enrolled
+      obj["status"] = status
+      result.append(obj)
+
+  return jsonify(result)
+
+@app.route("/api/classes", methods=["POST", "OPTIONS"])
+def create_class():
+  """
+  Giảng viên mở lớp mới.
+  Body có thể:
+  - có course_id
+  - hoặc course_code + course_name (+ credits) để backend tự tạo Course
+  """
+  if request.method == "OPTIONS":
+      return "", 204
+
+  data = request.get_json() or {}
+
+  teacher_id = data.get("teacher_id")
+  semester = data.get("semester")
+  room = data.get("room")
+  schedule = data.get("schedule")
+  max_students = data.get("max_students")
+
+  course_id = data.get("course_id")
+  course_code = data.get("course_code")
+  course_name = data.get("course_name")
+  credits = data.get("credits", 3)
+
+  if not teacher_id or not semester:
+      return jsonify({"message": "teacher_id and semester are required"}), 400
+
+  # 1) Dùng course_id nếu có
+  if course_id:
+      course = Course.query.get(course_id)
+      if not course:
+          return jsonify({"message": "Course not found"}), 404
+  else:
+      # 2) Tạo / dùng Course theo code + name
+      if not course_code or not course_name:
+          return jsonify(
+              {
+                  "message": "Either course_id or (course_code, course_name) is required"
+              }
+          ), 400
+
+      course = Course.query.filter_by(code=course_code).first()
+      if not course:
+          course = Course(code=course_code, name=course_name, credits=credits)
+          db.session.add(course)
+          db.session.commit()
+
+  new_class = CourseClass(
+      course_id=course.id,
+      teacher_id=teacher_id,
+      semester=semester,
+      room=room,
+      schedule=schedule,
+      max_students=max_students,
+      created_at=datetime.utcnow().isoformat(),
+  )
+
+  db.session.add(new_class)
+  db.session.commit()
+
+  obj = new_class.to_dict()
+  obj["enrolled"] = len(new_class.registrations)
+  obj["status"] = "open"
+  return jsonify(obj), 201
+
+@app.route("/api/classes/<int:class_id>", methods=["PUT", "DELETE", "OPTIONS"])
+def class_detail(class_id):
+  # Preflight cho PUT/DELETE
+  if request.method == "OPTIONS":
+      return "", 204
+
+  cls = CourseClass.query.get(class_id)
+  if not cls:
+      return jsonify({"message": "Class not found"}), 404
+
+  # -------- PUT: cập nhật lớp --------
+  if request.method == "PUT":
+      data = request.get_json() or {}
+
+      # Chỉ sửa những field này cho chắc ăn
+      room = data.get("room")
+      schedule = data.get("schedule")
+      max_students = data.get("max_students")
+      semester = data.get("semester")
+      course_code = data.get("course_code")
+      course_name = data.get("course_name")
+
+      if room is not None:
+          cls.room = room
+      if schedule is not None:
+          cls.schedule = schedule
+      if max_students is not None:
+          cls.max_students = max_students
+      if semester is not None:
+          cls.semester = semester
+
+      if cls.course:
+          if course_code:
+              cls.course.code = course_code
+          if course_name:
+              cls.course.name = course_name
+
+      try:
+          db.session.commit()
+      except Exception as e:
+          # Nếu có lỗi DB (ví dụ constraint), rollback & trả 400
+          db.session.rollback()
+          print("UPDATE CLASS ERROR:", e)
+          return jsonify({"message": "Update failed", "error": str(e)}), 400
+
+      # Trả về dữ liệu lớp sau khi sửa
+      return jsonify(cls.to_dict()), 200
+
+  # -------- DELETE: xóa lớp --------
+  if request.method == "DELETE":
+      # Nếu muốn cấm xóa khi còn sinh viên, có thể thêm check ở đây
+      # if cls.registrations:
+      #     return jsonify({"message": "Cannot delete class with registrations"}), 400
+
+      db.session.delete(cls)
+      db.session.commit()
+      return "", 204
+
+
+# ========== REGISTRATIONS ==========
+
+@app.route("/api/classes/<int:class_id>/register", methods=["POST", "OPTIONS"])
+@role_required("student")
+def class_register(class_id): # Đổi tên hàm
+  """
+  Sinh viên đăng ký lớp. Dùng student_id từ session
+  """
+  if request.method == "OPTIONS":
+      return "", 204
+
+  # Dùng ID từ session (BẢO MẬT!)
+  student_id = session["user_id"] 
+
+  # FIX: Dùng db.session.get()
+  cls = db.session.get(CourseClass, class_id)
+  if not cls:
+      return jsonify({"message": "Class not found"}), 404
+
+  # kiểm tra trùng đăng ký
+  existing = Registration.query.filter_by(
+      student_id=student_id, class_id=class_id
+  ).first()
+  if existing:
+      return jsonify({"message": "Already registered"}), 400
+
+  # kiểm tra full lớp
+  enrolled = len(cls.registrations)
+  if cls.max_students and enrolled >= cls.max_students:
+      return jsonify({"message": "Class is full"}), 400
+
+  reg = Registration(
+      student_id=student_id,
+      class_id=class_id,
+      registered_at=datetime.utcnow().isoformat(),
+  )
+  db.session.add(reg)
+  db.session.commit()
+
+  return jsonify(reg.to_dict()), 201
+
+@app.route(
+  "/api/classes/<int:class_id>/unregister", methods=["POST", "OPTIONS"]
+)
+@role_required("student")
+def class_unregister(class_id): # Đổi tên hàm
+  """
+  Hủy đăng ký lớp. Dùng student_id từ session
+  """
+  if request.method == "OPTIONS":
+      return "", 204
+
+  # Dùng ID từ session (BẢO MẬT!)
+  student_id = session["user_id"]
+
+  reg = Registration.query.filter_by(
+      student_id=student_id, class_id=class_id
+  ).first()
+  if not reg:
+      return jsonify({"message": "Registration not found"}), 404
+
+  db.session.delete(reg)
+  db.session.commit()
+  return "", 204
+
+@app.route("/api/students/<int:student_id>/registrations", methods=["GET"])
+def get_student_registrations(student_id):
+  regs = Registration.query.filter_by(student_id=student_id).all()
+  return jsonify([r.to_dict() for r in regs])
+
+
+@app.route("/debug/courses")
+def debug_courses():
+  courses = Course.query.all()
+  return jsonify([c.to_dict() for c in courses])
+
+@app.route("/debug/delete_course/<code>", methods=["POST"])
+def debug_delete_course(code):
+  course = Course.query.filter_by(code=code).first()
+  if not course:
+      return jsonify({"message": "Course not found"}), 404
+
+  # nếu course vẫn còn lớp thì cẩn thận:
+  if course.classes:
+      return jsonify({"message": "Cannot delete course: still has classes"}), 400
+
+  db.session.delete(course)
+  db.session.commit()
+  return jsonify({"message": f"Deleted course {code}"}), 200
+
+
+
 def create_sample_data():
     if not db.session.query(User).first():
         print("--- Đang tạo dữ liệu mẫu ---")
