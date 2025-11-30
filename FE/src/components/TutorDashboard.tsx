@@ -11,6 +11,7 @@ import {
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 
+import { TutorFooter} from "./pages/TutorFooter";
 import { TutorHeroSection } from "./pages/TutorHeroSection";
 import { TutorClasses } from "./pages/TutorClasses";
 import { TutorSchedule } from "./pages/TutorSchedule";
@@ -94,6 +95,7 @@ export default function TutorDashboard({ onLogout }: TutorDashboardProps) {
           {activeMenu === "registration" && <TeachingRegistration />}
           {activeMenu === "profile" && <TutorProfile />}
         </main>
+        <TutorFooter />
       </div>
 
       <Toaster />
