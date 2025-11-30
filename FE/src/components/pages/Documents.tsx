@@ -11,6 +11,7 @@ import {
   Star,
   Clock,
   User,
+  Upload,
 } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -24,6 +25,15 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "../ui/dialog";
+import { Label } from "../ui/label";
 
 interface Document {
   id: string;
@@ -145,11 +155,50 @@ const documentTypes = [
 ];
 
 export function Documents() {
+  const [docsList, setDocsList] = useState<Document[]>(documents);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("Tất cả môn học");
   const [selectedType, setSelectedType] = useState("all");
 
-  const filteredDocuments = documents.filter((doc) => {
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [newDoc, setNewDoc] = useState({
+    title: "",
+    subject: "",
+    type: "reference",
+    file: null as File | null,
+  });
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setNewDoc({ ...newDoc, file: e.target.files[0] });
+    }
+  };
+
+  const handleSubmitUpload = () => {
+    // Validate cơ bản
+    if (!newDoc.title || !newDoc.subject || !newDoc.file) {
+      alert("Vui lòng điền đầy đủ thông tin!");
+      return;
+    }
+  const newDocument: Document = {
+      id: Math.random().toString(36).substr(2, 9), // Tạo ID ngẫu nhiên
+      title: newDoc.title,
+      subject: newDoc.subject,
+      type: newDoc.type as any,
+      uploadedBy: "Bạn (User)", // Giả lập user hiện tại
+      uploadDate: new Date().toLocaleDateString("vi-VN"),
+      downloads: 0,
+      size: (newDoc.file.size / 1024 / 1024).toFixed(1) + " MB", // Tính size file
+      rating: 0,
+    };
+
+  setDocsList([newDocument, ...docsList]);
+    
+    // Reset form và đóng dialog
+    setNewDoc({ title: "", subject: "", type: "reference", file: null });
+    setIsUploadOpen(false);
+  };
+
+  const filteredDocuments = docsList.filter((doc) => {
     const matchesSearch =
       doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.subject.toLowerCase().includes(searchQuery.toLowerCase());
@@ -215,10 +264,104 @@ export function Documents() {
                 Tài liệu học tập và tham khảo cho sinh viên
               </p>
             </div>
-            <Button className="bg-[#3BA5DB] hover:bg-[#2E8AB8]">
-              <Download className="h-4 w-4 mr-2" />
-              Tải lên tài liệu
-            </Button>
+            {/* Dialog Upload Form */}
+            <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-[#3BA5DB] hover:bg-[#2E8AB8]">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Tải lên tài liệu
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px] bg-white">
+                <DialogHeader>
+                  <DialogTitle>Tải lên tài liệu mới</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  {/* Nhập tiêu đề */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="title">Tên tài liệu</Label>
+                    <Input
+                      id="title"
+                      value={newDoc.title}
+                      onChange={(e) =>
+                        setNewDoc({ ...newDoc, title: e.target.value })
+                      }
+                      placeholder="Ví dụ: Bài giảng Cấu trúc dữ liệu..."
+                    />
+                  </div>
+
+                  {/* Chọn môn học */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="subject">Môn học</Label>
+                    <Select
+                      value={newDoc.subject}
+                      onValueChange={(val) =>
+                        setNewDoc({ ...newDoc, subject: val })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn môn học" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subjects
+                          .filter((s) => s !== "Tất cả môn học") // Bỏ option "Tất cả" khi upload
+                          .map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Chọn loại tài liệu */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="type">Loại tài liệu</Label>
+                    <Select
+                      value={newDoc.type}
+                      onValueChange={(val) =>
+                        setNewDoc({ ...newDoc, type: val })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn loại" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {documentTypes
+                          .filter((t) => t.value !== "all")
+                          .map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              <div className="flex items-center">
+                                <type.icon className="mr-2 h-4 w-4" />
+                                {type.label}
+                              </div>
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Input File */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="file">File đính kèm</Label>
+                    <Input
+                      id="file"
+                      type="file"
+                      onChange={handleFileChange}
+                      className="cursor-pointer"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsUploadOpen(false)}>
+                    Hủy
+                  </Button>
+                  <Button onClick={handleSubmitUpload} className="bg-[#3BA5DB]">
+                    Lưu tài liệu
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Search and Filters */}

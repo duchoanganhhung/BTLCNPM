@@ -11,6 +11,7 @@ import {
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
 
+import { Documents } from "./pages/Documents";
 import { TutorFooter} from "./pages/TutorFooter";
 import { TutorHeroSection } from "./pages/TutorHeroSection";
 import { TutorClasses } from "./pages/TutorClasses";
@@ -34,6 +35,7 @@ export default function TutorDashboard({ onLogout }: TutorDashboardProps) {
     { id: "schedule", label: "Lịch dạy", icon: Calendar },
     { id: "registration", label: "Đăng ký giảng dạy", icon: FileText },
     { id: "profile", label: "Thông tin giảng viên", icon: UserCircle },
+    { id: "documents", label: "Tài liệu", icon: FileText },
   ];
 
   const handleLogout = () => {
@@ -93,6 +95,7 @@ export default function TutorDashboard({ onLogout }: TutorDashboardProps) {
           {activeMenu === "schedule" && <TutorSchedule />}
           {activeMenu === "registration" && <TeachingRegistration />}
           {activeMenu === "profile" && <TutorProfile />}
+          {activeMenu === "documents" && <Documents />}
         </main>
         <TutorFooter />
       </div>
