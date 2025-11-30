@@ -149,6 +149,20 @@ def get_current_user():
     return jsonify({"message": "Người dùng không tồn tại"}), 404
   return jsonify({"user": user.to_dict()}), 200
 
+@app.route("/api/check-auth", methods=["GET"])
+def check_auth():
+    if "user_id" not in session:
+        return jsonify({"authenticated": False}), 200
+
+    user = db.session.get(User, session["user_id"])
+    if not user:
+        return jsonify({"authenticated": False}), 200
+
+    return jsonify({
+        "authenticated": True,
+        "user": user.to_dict()
+    }), 200
+
 # --- API LẤY DỮ LIỆU ---
 
 @app.route("/courses", methods=["GET"])
