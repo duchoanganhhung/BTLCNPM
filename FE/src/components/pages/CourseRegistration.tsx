@@ -1,26 +1,15 @@
-import { useState } from "react";
-import { Search, Filter, Calendar, Clock, MapPin, User, BookOpen, Users, CheckCircle, XCircle, AlertCircle, ChevronDown } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Search, Calendar, MapPin, User, BookOpen, Users, CheckCircle, XCircle, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { toast } from "sonner";
+
+const BASE_API_URL = "http://localhost:5000";
 
 interface Course {
   id: string;
@@ -39,146 +28,75 @@ interface Course {
   prerequisites?: string[];
 }
 
-const availableCourses: Course[] = [
-  {
-    id: "1",
-    code: "IT4080",
-    name: "Trí tuệ nhân tạo",
-    credits: 3,
-    instructor: "PGS.TS. Nguyễn Văn A",
-    schedule: "Thứ 2, 9:00 - 11:00",
-    room: "D3-201",
-    capacity: 60,
-    enrolled: 45,
-    status: "available",
-    semester: "HK1 2024-2025",
-    department: "Công nghệ thông tin",
-    description: "Giới thiệu về các khái niệm cơ bản trong trí tuệ nhân tạo, học máy, và xử lý ngôn ngữ tự nhiên.",
-    prerequisites: ["IT3100", "IT3080"],
-  },
-  {
-    id: "2",
-    code: "IT4090",
-    name: "An toàn thông tin",
-    credits: 3,
-    instructor: "TS. Trần Thị B",
-    schedule: "Thứ 3, 13:00 - 15:00",
-    room: "D9-301",
-    capacity: 50,
-    enrolled: 48,
-    status: "available",
-    semester: "HK1 2024-2025",
-    department: "Công nghệ thông tin",
-    description: "Các nguyên lý cơ bản về an toàn và bảo mật thông tin trong hệ thống máy tính.",
-    prerequisites: ["IT3090"],
-  },
-  {
-    id: "3",
-    code: "IT4100",
-    name: "Học sâu và ứng dụng",
-    credits: 4,
-    instructor: "PGS.TS. Lê Văn C",
-    schedule: "Thứ 4, 15:00 - 17:00",
-    room: "D3-105",
-    capacity: 40,
-    enrolled: 40,
-    status: "full",
-    semester: "HK1 2024-2025",
-    department: "Công nghệ thông tin",
-    description: "Các kỹ thuật học sâu hiện đại và ứng dụng trong thị giác máy tính, xử lý ngôn ngữ tự nhiên.",
-    prerequisites: ["IT4080"],
-  },
-  {
-    id: "4",
-    code: "IT4110",
-    name: "Phát triển ứng dụng Web",
-    credits: 3,
-    instructor: "ThS. Phạm Thị D",
-    schedule: "Thứ 5, 9:00 - 11:00",
-    room: "D8-201",
-    capacity: 55,
-    enrolled: 32,
-    status: "available",
-    semester: "HK1 2024-2025",
-    department: "Công nghệ thông tin",
-    description: "Phát triển các ứng dụng web hiện đại sử dụng React, Node.js và các công nghệ liên quan.",
-    prerequisites: ["IT3120"],
-  },
-  {
-    id: "5",
-    code: "IT4120",
-    name: "Điện toán đám mây",
-    credits: 3,
-    instructor: "TS. Hoàng Văn E",
-    schedule: "Thứ 6, 13:00 - 15:00",
-    room: "D3-201",
-    capacity: 45,
-    enrolled: 30,
-    status: "available",
-    semester: "HK1 2024-2025",
-    department: "Công nghệ thông tin",
-    description: "Các khái niệm và công nghệ điện toán đám mây, AWS, Azure, Google Cloud Platform.",
-    prerequisites: ["IT3090"],
-  },
-  {
-    id: "6",
-    code: "IT4130",
-    name: "Phân tích dữ liệu lớn",
-    credits: 4,
-    instructor: "PGS.TS. Đỗ Thị F",
-    schedule: "Thứ 2, 15:00 - 17:00",
-    room: "D9-105",
-    capacity: 50,
-    enrolled: 25,
-    status: "available",
-    semester: "HK1 2024-2025",
-    department: "Công nghệ thông tin",
-    description: "Kỹ thuật phân tích và xử lý dữ liệu lớn với Hadoop, Spark và các công cụ liên quan.",
-    prerequisites: ["IT3080", "IT3100"],
-  },
-];
-
-const registeredCourses: Course[] = [
-  {
-    id: "reg1",
-    code: "IT3100",
-    name: "Cấu trúc dữ liệu",
-    credits: 3,
-    instructor: "TS. Nguyễn Văn A",
-    schedule: "Thứ 2, 9:00 - 11:00",
-    room: "D3-201",
-    capacity: 60,
-    enrolled: 55,
-    status: "available",
-    semester: "HK1 2024-2025",
-    department: "Công nghệ thông tin",
-    description: "Các cấu trúc dữ liệu cơ bản và nâng cao.",
-  },
-  {
-    id: "reg2",
-    code: "MI1111",
-    name: "Giải tích 1",
-    credits: 4,
-    instructor: "PGS. Lê Thị B",
-    schedule: "Thứ 3, 13:00 - 15:00",
-    room: "C1-105",
-    capacity: 80,
-    enrolled: 75,
-    status: "available",
-    semester: "HK1 2024-2025",
-    department: "Toán học",
-    description: "Giải tích một biến số.",
-  },
-];
-
 export function CourseRegistration() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [showDialog, setShowDialog] = useState(false);
-  const [registered, setRegistered] = useState<Course[]>(registeredCourses);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
+  const [registered, setRegistered] = useState<Course[]>([]);
   const [activeTab, setActiveTab] = useState("available");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
+  // Fetch user info
+  const fetchCurrentUser = useCallback(async () => {
+    try {
+      const response = await fetch(`${BASE_API_URL}/api/me`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error("Chưa đăng nhập");
+      const data = await response.json();
+      setUserId(data.user.id.toString());
+      return data.user.id;
+    } catch (err) {
+      console.error("User fetch error:", err);
+      return null;
+    }
+  }, []);
+
+  // Fetch courses data
+  const fetchCourses = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const [availableRes, registeredRes] = await Promise.all([
+        fetch(`${BASE_API_URL}/courses`, { credentials: 'include' }),
+        fetch(`${BASE_API_URL}/registered`, { credentials: 'include' })
+      ]);
+
+      if (!availableRes.ok || !registeredRes.ok) {
+        throw new Error("Lỗi tải dữ liệu");
+      }
+
+      const availableData = await availableRes.json();
+      const registeredData = await registeredRes.json();
+
+      setAvailableCourses(availableData);
+      setRegistered(registeredData);
+    } catch (error) {
+      toast.error("Không thể tải dữ liệu khóa học");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    const init = async () => {
+      const user = await fetchCurrentUser();
+      if (user) {
+        await fetchCourses();
+      } else {
+        setIsLoading(false);
+        toast.error("Vui lòng đăng nhập để xem khóa học");
+      }
+    };
+    init();
+  }, [fetchCurrentUser, fetchCourses]);
+
+  // Filter courses
   const filteredCourses = availableCourses.filter((course) => {
     const matchesSearch =
       course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -188,43 +106,92 @@ export function CourseRegistration() {
     const matchesDepartment =
       selectedDepartment === "all" || course.department === selectedDepartment;
 
-    return matchesSearch && matchesDepartment;
+    const isRegistered = registered.some(c => c.id === course.id);
+
+    return matchesSearch && matchesDepartment && !isRegistered;
   });
 
+  // Register course
   const handleRegister = (course: Course) => {
+    if (!userId) {
+      toast.error("Vui lòng đăng nhập");
+      return;
+    }
     if (course.status === "full") {
       toast.error("Lớp học đã đầy");
       return;
     }
-
-    // Check if already registered
-    if (registered.find((c) => c.id === course.id)) {
-      toast.error("Bạn đã đăng ký môn học này");
-      return;
-    }
-
     setSelectedCourse(course);
     setShowDialog(true);
   };
 
-  const confirmRegister = () => {
-    if (selectedCourse) {
-      setRegistered([...registered, selectedCourse]);
+  const confirmRegister = async () => {
+    if (!selectedCourse) return;
+
+    setIsProcessing(true);
+    try {
+      const response = await fetch(`${BASE_API_URL}/api/register_class`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ class_id: selectedCourse.id })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Đăng ký thất bại");
+      }
+
+      await fetchCourses();
       toast.success(`Đã đăng ký thành công môn ${selectedCourse.name}`);
       setShowDialog(false);
       setSelectedCourse(null);
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const handleUnregister = (courseId: string) => {
-    const course = registered.find((c) => c.id === courseId);
-    if (course) {
-      setRegistered(registered.filter((c) => c.id !== courseId));
-      toast.success(`Đã hủy đăng ký môn ${course.name}`);
+  // Unregister course
+  const handleUnregister = async (courseId: string) => {
+    if (!userId) {
+      toast.error("Vui lòng đăng nhập");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const response = await fetch(`${BASE_API_URL}/api/unregister_class`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ class_id: courseId })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Hủy đăng ký thất bại");
+      }
+
+      await fetchCourses();
+      toast.success("Đã hủy đăng ký thành công");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const totalCredits = registered.reduce((sum, course) => sum + course.credits, 0);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -240,73 +207,81 @@ export function CourseRegistration() {
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90">Môn đã đăng ký</p>
-                  <p className="text-3xl mt-1">{registered.length}</p>
-                </div>
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                  <BookOpen className="h-6 w-6" />
-                </div>
-              </div>
-            </Card>
+          {/* Stats - 4 cards in one horizontal row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  {/* Card 1 - Môn đã đăng ký */}
+  <Card className="p-4 border-0" style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' }}>
+    <div className="text-white">
+      <p className="text-sm opacity-90 mb-2">Môn đã đăng ký</p>
+      <p className="text-3xl font-semibold">{registered.length}</p>
+      <div className="flex justify-end mt-2">
+        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+          <BookOpen className="h-5 w-5" />
+        </div>
+      </div>
+    </div>
+  </Card>
 
-            <Card className="p-4 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90">Tổng tín chỉ</p>
-                  <p className="text-3xl mt-1">{totalCredits}</p>
-                </div>
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                  <Calendar className="h-6 w-6" />
-                </div>
-              </div>
-            </Card>
+  {/* Card 2 - Tổng tín chỉ */}
+  <Card className="p-4 border-0" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+    <div className="text-white">
+      <p className="text-sm opacity-90 mb-2">Tổng tín chỉ</p>
+      <p className="text-3xl font-semibold">{totalCredits}</p>
+      <div className="flex justify-end mt-2">
+        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+          <Calendar className="h-5 w-5" />
+        </div>
+      </div>
+    </div>
+  </Card>
 
-            <Card className="p-4 bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90">Môn có thể đăng ký</p>
-                  <p className="text-3xl mt-1">{availableCourses.filter(c => c.status === "available").length}</p>
-                </div>
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="h-6 w-6" />
-                </div>
-              </div>
-            </Card>
+  {/* Card 3 - Môn có thể đăng ký */}
+  <Card className="p-4 border-0" style={{ background: 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)' }}>
+    <div className="text-white">
+      <p className="text-sm opacity-90 mb-2">Môn có thể đăng ký</p>
+      <p className="text-3xl font-semibold">{availableCourses.filter(c => c.status === "available").length}</p>
+      <div className="flex justify-end mt-2">
+        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+          <CheckCircle className="h-5 w-5" />
+        </div>
+      </div>
+    </div>
+  </Card>
 
-            <Card className="p-4 bg-gradient-to-br from-orange-500 to-orange-600 text-white border-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm opacity-90">Học kỳ</p>
-                  <p className="text-xl mt-1">HK1 2024-2025</p>
-                </div>
-                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                  <Calendar className="h-6 w-6" />
-                </div>
-              </div>
-            </Card>
-          </div>
+  {/* Card 4 - Học kỳ */}
+  <Card className="p-4 border-0" style={{ background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)' }}>
+    <div className="text-white">
+      <p className="text-sm opacity-90 mb-2">Học kỳ</p>
+      <p className="text-xl font-semibold">HK1 2024-2025</p>
+      <div className="flex justify-end mt-2">
+        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+          <Calendar className="h-5 w-5" />
+        </div>
+      </div>
+    </div>
+  </Card>
+</div>
 
           {/* Search and Filter */}
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-4 mb-8">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Tìm kiếm môn học, mã môn, giảng viên..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                style={{ backgroundColor: 'white' }}
               />
             </div>
             <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-              <SelectTrigger className="w-full md:w-[250px]">
+              <SelectTrigger 
+                className="w-full md:w-[250px] bg-white border-gray-300"
+                style={{ backgroundColor: 'white' }}
+              >
                 <SelectValue placeholder="Chọn khoa" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent style={{ backgroundColor: 'white' }}>
                 <SelectItem value="all">Tất cả các khoa</SelectItem>
                 <SelectItem value="Công nghệ thông tin">Công nghệ thông tin</SelectItem>
                 <SelectItem value="Toán học">Toán học</SelectItem>
@@ -316,18 +291,44 @@ export function CourseRegistration() {
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs with indicator */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6 bg-white p-1 h-auto">
-            <TabsTrigger value="available" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+        <TabsList 
+          className="mb-6 p-1 h-auto rounded-xl w-full relative border-2 shadow-sm"
+          style={{ 
+            backgroundColor: '#ffffff', 
+            borderColor: '#d1d5db'
+          }}
+        >
+          <div className="flex w-full">
+            <TabsTrigger 
+              value="available" 
+              className="gap-2 rounded-lg px-6 py-3 flex-1 transition-all duration-200 border-b-2"
+              style={{
+                backgroundColor: activeTab === 'available' ? '#f3f4f6' : 'transparent',
+                color: activeTab === 'available' ? '#1f2937' : '#6b7280',
+                borderBottomColor: activeTab === 'available' ? '#6b7280' : 'transparent',
+                fontWeight: activeTab === 'available' ? '600' : '400'
+              }}
+            >
               <BookOpen className="h-4 w-4" />
               Môn học có thể đăng ký
             </TabsTrigger>
-            <TabsTrigger value="registered" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger 
+              value="registered" 
+              className="gap-2 rounded-lg px-6 py-3 flex-1 transition-all duration-200 border-b-2"
+              style={{
+                backgroundColor: activeTab === 'registered' ? '#f3f4f6' : 'transparent',
+                color: activeTab === 'registered' ? '#1f2937' : '#6b7280',
+                borderBottomColor: activeTab === 'registered' ? '#6b7280' : 'transparent',
+                fontWeight: activeTab === 'registered' ? '600' : '400'
+              }}
+            >
               <CheckCircle className="h-4 w-4" />
               Môn đã đăng ký ({registered.length})
             </TabsTrigger>
-          </TabsList>
+          </div>
+        </TabsList>
 
           {/* Available Courses */}
           <TabsContent value="available" className="mt-0">
