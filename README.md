@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
   # User-Friendly Sign-Up Flow
 
@@ -21,3 +22,6 @@
   python.exe -m pip install --upgrade pip
   cd be     
   python app.py
+=======
+run pip install -r requirements.txt
+>>>>>>> 8983b9ddd2902204f77a6a4f44e958c2921016b1
