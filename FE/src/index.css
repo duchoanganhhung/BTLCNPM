@@ -1688,8 +1688,11 @@
     background-color: var(--color-pink-500);
   }
 
-  .bg-\[\#1a95dc\] { background-color: #1a95dc; }
+  .bg-\[\#3557c7\] { background-color: #3557c7; }
 
+  .bg-\[\#4169e1\] { background-color: #4169e1; }
+
+  .bg-\[\#1a95dc\] { background-color: #1a95dc; }
   .bg-popover {
     background-color: var(--popover);
   }
