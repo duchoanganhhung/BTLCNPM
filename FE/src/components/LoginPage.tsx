@@ -36,16 +36,8 @@ export default function LoginPage({ onLogin, onNavigateRegister }: LoginPageProp
       setIsLoading(false);
       return;
     }
-    if (username === "student" && password === "student") {
-      onLogin("student");
-      setIsLoading(false);
-      return;
-    }
-    if (username === "tutor" && password === "tutor") {
-      onLogin("tutor");
-      setIsLoading(false);
-      return;
-    }
+
+
 
     try {
       const response = await fetch("/api/login", {
