@@ -310,46 +310,57 @@ def unregister_class():
 
 @app.route("/api/classes", methods=["GET"])
 def list_classes():
-  """
-  GET /api/classes?role=tutor&teacher_id=1
-  GET /api/classes?role=student
-  """
-  role = request.args.get("role")
-  teacher_id = request.args.get("teacher_id", type=int)
+  # Kiểm tra đăng nhập
+  if "user_id" not in session:
+      return jsonify({"message": "Chưa đăng nhập"}), 401
 
-  if role == "tutor" and teacher_id:
-      classes = CourseClass.query.filter_by(teacher_id=teacher_id).all()
+  user_id = session["user_id"]
+  user = db.session.get(User, user_id)
+
+  if not user:
+      return jsonify({"message": "User không tồn tại"}), 404
+
+  # LOGIC SỬA ĐỔI: Phân quyền dữ liệu dựa trên Role trong Session
+  if user.role == "tutor":
+      # Nếu là Tutor: Chỉ lấy lớp do CHÍNH MÌNH tạo ra
+      classes = CourseClass.query.filter_by(teacher_id=user_id).all()
   else:
+      # Nếu là Student (hoặc role khác): Lấy tất cả lớp đang mở để đăng ký
       classes = CourseClass.query.all()
 
   result = []
   for cls in classes:
       obj = cls.to_dict()
-      enrolled = len(cls.registrations)
+      
+      # Tính toán số lượng đã đăng ký
+      enrolled = len(cls.registrations) 
       max_students = cls.max_students or 0
+      
       status = "open"
-      if max_students and enrolled >= max_students:
+      if max_students > 0 and enrolled >= max_students:
           status = "full"
+          
       obj["enrolled"] = enrolled
       obj["status"] = status
+      
+      # Thêm thông tin tên giảng viên để dễ hiển thị
+      obj["teacher_name"] = cls.teacher.fullname if cls.teacher else "Unknown"
+      
       result.append(obj)
 
-  return jsonify(result)
+  return jsonify(result), 200
 
 @app.route("/api/classes", methods=["POST", "OPTIONS"])
+@role_required("tutor") # Bắt buộc phải là Tutor mới được tạo lớp
 def create_class():
-  """
-  Giảng viên mở lớp mới.
-  Body có thể:
-  - có course_id
-  - hoặc course_code + course_name (+ credits) để backend tự tạo Course
-  """
   if request.method == "OPTIONS":
       return "", 204
 
   data = request.get_json() or {}
 
-  teacher_id = data.get("teacher_id")
+  # SỬA: Lấy teacher_id từ session, không lấy từ data gửi lên
+  teacher_id = session["user_id"] 
+  
   semester = data.get("semester")
   room = data.get("room")
   schedule = data.get("schedule")
@@ -360,22 +371,17 @@ def create_class():
   course_name = data.get("course_name")
   credits = data.get("credits", 3)
 
-  if not teacher_id or not semester:
-      return jsonify({"message": "teacher_id and semester are required"}), 400
+  if not semester:
+      return jsonify({"message": "Semester is required"}), 400
 
-  # 1) Dùng course_id nếu có
+  # Logic xử lý Course giữ nguyên
   if course_id:
-      course = Course.query.get(course_id)
+      course = db.session.get(Course, course_id) # Dùng db.session.get thay vì query.get
       if not course:
           return jsonify({"message": "Course not found"}), 404
   else:
-      # 2) Tạo / dùng Course theo code + name
       if not course_code or not course_name:
-          return jsonify(
-              {
-                  "message": "Either course_id or (course_code, course_name) is required"
-              }
-          ), 400
+          return jsonify({"message": "Cần có course_id hoặc (course_code, course_name)"}), 400
 
       course = Course.query.filter_by(code=course_code).first()
       if not course:
@@ -385,7 +391,7 @@ def create_class():
 
   new_class = CourseClass(
       course_id=course.id,
-      teacher_id=teacher_id,
+      teacher_id=teacher_id, # ID lấy từ session
       semester=semester,
       room=room,
       schedule=schedule,
@@ -397,7 +403,7 @@ def create_class():
   db.session.commit()
 
   obj = new_class.to_dict()
-  obj["enrolled"] = len(new_class.registrations)
+  obj["enrolled"] = 0
   obj["status"] = "open"
   return jsonify(obj), 201
 

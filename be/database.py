@@ -77,5 +77,7 @@ class Registration(db.Model):
             "course_code": self.course_class.course.code if self.course_class and self.course_class.course else None,
             "course_name": self.course_class.course.name if self.course_class and self.course_class.course else None,
             "semester": self.course_class.semester if self.course_class else None,
+            "teacher_name": self.course_class.teacher.fullname if self.course_class and self.course_class.teacher else None,
+            "teacher_id": self.course_class.teacher_id if self.course_class else None,
             "registered_at": self.registered_at,
         }
