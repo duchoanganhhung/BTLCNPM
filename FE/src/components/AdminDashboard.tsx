@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Users, 
@@ -34,16 +35,16 @@ import FeedbackPage from "./pages/FeedbackPage";
 import SecurityPage from "./pages/SecurityPage";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", id: "dashboard" },
-  { icon: Users, label: "Quản lý người dùng", id: "users" },
-  { icon: Calendar, label: "Lớp học & Lịch học", id: "classes" },
-  { icon: BookOpen, label: "Học liệu & Tài liệu", id: "materials" },
-  { icon: Bell, label: "Thông báo", id: "notifications" },
-  { icon: BarChart3, label: "Báo cáo", id: "reports" },
-  { icon: Settings, label: "Cấu hình hệ thống", id: "settings" },
-  { icon: Activity, label: "Giám sát & Logs", id: "monitoring" },
-  { icon: MessageSquare, label: "Phản hồi", id: "feedback" },
-  { icon: Shield, label: "Bảo mật", id: "security" },
+  { icon: LayoutDashboard, label: "Dashboard", id: "dashboard", path: "/admin/dashboard" },
+  { icon: Users, label: "Quản lý người dùng", id: "users", path: "/admin/nguoi_dung" },
+  { icon: Calendar, label: "Lớp học & Lịch học", id: "classes", path: "/admin/lop_hoc" },
+  { icon: BookOpen, label: "Học liệu & Tài liệu", id: "materials", path: "/admin/tai_lieu" },
+  { icon: Bell, label: "Thông báo", id: "notifications", path: "/admin/thong_bao" },
+  { icon: BarChart3, label: "Báo cáo", id: "reports", path: "/admin/bao_cao" },
+  { icon: Settings, label: "Cấu hình hệ thống", id: "settings", path: "/admin/cau_hinh" },
+  { icon: Activity, label: "Giám sát & Logs", id: "monitoring", path: "/admin/giam_sat" },
+  { icon: MessageSquare, label: "Phản hồi", id: "feedback", path: "/admin/phan_hoi" },
+  { icon: Shield, label: "Bảo mật", id: "security", path: "/admin/bao_mat" },
 ];
 
 interface AdminDashboardProps {
@@ -51,19 +52,52 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
-  const [activeMenu, setActiveMenu] = useState("dashboard");
+  const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
+  const handleMenuClick = (path: string) => {
+    navigate(path);
+  };
+
   const handleLogout = () => {
-    // Xóa session/token (trong thực tế sẽ call API logout)
     console.log("Đăng xuất...");
     setShowLogoutDialog(false);
     onLogout();
   };
 
+  const activeMenuId = menuItems.find(item => item.path === location.pathname)?.id || "dashboard";
+
+  const renderContent = () => {
+    switch (location.pathname) {
+      case "/admin/dashboard":
+        return <DashboardPage />;
+      case "/admin/nguoi_dung":
+        return <UserManagementPage />;
+      case "/admin/lop_hoc":
+        return <ClassManagementPage />;
+      case "/admin/tai_lieu":
+        return <MaterialsPage />;
+      case "/admin/thong_bao":
+        return <NotificationsPage />;
+      case "/admin/bao_cao":
+        return <ReportsPage />;
+      case "/admin/cau_hinh":
+        return <SystemSettingsPage />;
+      case "/admin/giam_sat":
+        return <MonitoringPage />;
+      case "/admin/phan_hoi":
+        return <FeedbackPage />;
+      case "/admin/bao_mat":
+        return <SecurityPage />;
+      default:
+        return <DashboardPage />;
+    }
+  };
+
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50" key={location.pathname}>
       {/* Sidebar */}
       <aside 
         className={`${
@@ -84,9 +118,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
             {menuItems.map((item) => (
               <li key={item.id}>
                 <button
-                  onClick={() => setActiveMenu(item.id)}
+                  onClick={() => handleMenuClick(item.path)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    activeMenu === item.id
+                    activeMenuId === item.id
                       ? "bg-white text-[#1a95dc]"
                       : "hover:bg-white/10"
                   }`}
@@ -180,16 +214,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
         {/* Dashboard Content */}
         <main className="flex-1 overflow-y-auto p-6">
-          {activeMenu === "dashboard" && <DashboardPage />}
-          {activeMenu === "users" && <UserManagementPage />}
-          {activeMenu === "classes" && <ClassManagementPage />}
-          {activeMenu === "materials" && <MaterialsPage />}
-          {activeMenu === "notifications" && <NotificationsPage />}
-          {activeMenu === "reports" && <ReportsPage />}
-          {activeMenu === "settings" && <SystemSettingsPage />}
-          {activeMenu === "monitoring" && <MonitoringPage />}
-          {activeMenu === "feedback" && <FeedbackPage />}
-          {activeMenu === "security" && <SecurityPage />}
+          {renderContent()}
         </main>
       </div>
 

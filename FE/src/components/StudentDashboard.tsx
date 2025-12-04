@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { 
+import { useNavigate, useLocation } from "react-router-dom";
+import {
   Home,
   Calendar,
   UserCircle,
@@ -9,10 +10,8 @@ import {
   Users,
   LogOut,
 } from "lucide-react";
-
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog";
-
 import { HeroSection } from "./pages/HeroSection";
 import { AcademicManagement } from "./pages/AcademicManagement";
 import { ScheduleTable } from "./pages/ScheduleTable";
@@ -22,7 +21,6 @@ import { Documents } from "./pages/Documents";
 import { CourseRegistration } from "./pages/CourseRegistration";
 import { Feedback } from "./pages/Feedback";
 import { ChatView } from "./pages/ChatView";
-
 import { Toaster } from "./ui/sonner";
 
 interface StudentDashboardProps {
@@ -30,93 +28,116 @@ interface StudentDashboardProps {
 }
 
 export default function StudentDashboard({ onLogout }: StudentDashboardProps) {
-  const [activeMenu, setActiveMenu] = useState("home");
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
-  // --- ONLY STUDENT MENU ---
   const studentMenu = [
-    { id: "home", label: "Trang chủ", icon: Home },
-    { id: "academic", label: "Quản lý học tập", icon: BookOpen },
-    { id: "schedule", label: "Thời khóa biểu", icon: Calendar },
-    { id: "registration", label: "Đăng ký môn học", icon: FileText },
-    { id: "feedback", label: "Phản hồi", icon: MessageSquare },
-    { id: "profile", label: "Thông tin cá nhân", icon: UserCircle },
-    { id: "documents", label: "Tài liệu", icon: FileText },
+    { id: "trang_chu", label: "Trang chủ", icon: Home, path: "/trang_chu" },
+    { id: "quan_ly_hoc_tap", label: "Quản lý học tập", icon: BookOpen, path: "/quan_ly_hoc_tap" },
+    { id: "thoi_khoa_bieu", label: "Thời khóa biểu", icon: Calendar, path: "/thoi_khoa_bieu" },
+    { id: "dang_ky_mon_hoc", label: "Đăng ký môn học", icon: FileText, path: "/dang_ky_mon_hoc" },
+    { id: "phan_hoi", label: "Phản hồi", icon: MessageSquare, path: "/phan_hoi" },
+    { id: "thong_tin_ca_nhan", label: "Thông tin cá nhân", icon: UserCircle, path: "/thong_tin_ca_nhan" },
+    { id: "tai_lieu", label: "Tài liệu", icon: FileText, path: "/tai_lieu" },
   ];
+
+  const handleMenuClick = (path: string) => {
+    navigate(path);
+  };
 
   const handleLogout = () => {
     setShowLogoutDialog(false);
     onLogout();
   };
 
+  const activeMenuId = studentMenu.find(item => item.path === location.pathname)?.id || "trang_chu";
+
+  const renderContent = () => {
+    switch (location.pathname) {
+      case "/trang_chu":
+        return (
+          <>
+            <HeroSection />
+            <MySchedule />
+          </>
+        );
+      case "/quan_ly_hoc_tap":
+        return <AcademicManagement />;
+      case "/thoi_khoa_bieu":
+        return <ScheduleTable />;
+      case "/dang_ky_mon_hoc":
+        return <CourseRegistration />;
+      case "/phan_hoi":
+        return <Feedback mode="student" />;
+      case "/thong_tin_ca_nhan":
+        return <Profile />;
+      case "/tai_lieu":
+        return <Documents />;
+      default:
+        return (
+          <>
+            <HeroSection />
+            <MySchedule />
+          </>
+        );
+    }
+  };
+
   return (
-    <div className="flex h-screen bg-gray-100">
-      
+    <div className="min-h-screen bg-gray-50" key={location.pathname}>
       {/* ----- MAIN CONTENT ----- */}
-      <div className="flex-1 flex flex-col">
-        
+      <div className="flex flex-col">
         {/* Header */}
-        <header className="bg-[#1a95dc] px-6 py-4 flex items-center justify-between shadow">
-          
-          {/* Left: Logo + Menu */}
-          <div className="flex items-center gap-6">
+        <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Left: Logo + Menu */}
+            <div className="flex items-center justify-between h-16">
+              {/* Logo */}
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 bg-[#1a95dc] rounded-lg flex items-center justify-center">
+                    <BookOpen className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="font-bold text-xl text-gray-900">Portal</span>
+                </div>
 
-            {/* Logo */}
-            <img 
-              src="src/assets/bklogo.png" 
-              alt="Logo" 
-              className="h-10 w-auto object-contain"
-            />
-
-            {/* Horizontal Menu */}
-            <nav>
-              <ul className="flex items-center gap-4">
-                {studentMenu.map(item => (
-                  <li key={item.id}>
-                    <button
-                      onClick={() => setActiveMenu(item.id)}
+                {/* Menu */}
+                <nav className="hidden md:flex items-center gap-1">
+                  {studentMenu.map(item => (
+                    <Button
+                      key={item.id}
+                      variant="ghost"
+                      onClick={() => handleMenuClick(item.path)}
                       className={`flex items-center gap-2 px-3 py-2 rounded-md transition
-                        ${activeMenu === item.id 
-                          ? "bg-[#1a95dc] text-white" 
+                        ${activeMenuId === item.id
+                          ? "bg-[#1a95dc] text-white"
                           : "hover:bg-gray-100"}`}
                     >
                       <item.icon className="w-4 h-4" />
                       {item.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
+                    </Button>
+                  ))}
+                </nav>
+              </div>
 
-          {/* Right: Logout */}
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              onClick={() => setShowLogoutDialog(true)}
-              className="flex items-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Đăng xuất
-            </Button>
+              {/* Right: Logout */}
+              <Button
+                variant="ghost"
+                onClick={() => setShowLogoutDialog(true)}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Đăng xuất
+              </Button>
+            </div>
           </div>
         </header>
 
         {/* Main Page Content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          {activeMenu === "home" && (
-            <>
-              <HeroSection />
-              <ScheduleTable />
-            </>
-          )}
-          {activeMenu === "academic" && <AcademicManagement />}
-          {activeMenu === "schedule" && <MySchedule />}
-          {activeMenu === "registration" && <CourseRegistration />}
-          {activeMenu === "feedback" && <Feedback mode="student" />}
-          {activeMenu === "profile" && <Profile />}
-          {activeMenu === "documents" && <Documents />}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {renderContent()}
         </main>
       </div>
 
@@ -131,13 +152,13 @@ export default function StudentDashboard({ onLogout }: StudentDashboardProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Xác nhận đăng xuất</DialogTitle>
-            <DialogDescription>Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</DialogDescription>
+            <DialogDescription>
+              Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowLogoutDialog(false)}>Hủy</Button>
-            <Button variant="destructive" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" /> Đăng xuất
-            </Button>
+            <Button onClick={handleLogout}>Đăng xuất</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

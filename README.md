@@ -1,27 +1,17 @@
-<<<<<<< HEAD
+## Setup
 
-  # User-Friendly Sign-Up Flow
+# Chạy server
 
-  This is a code bundle for User-Friendly Sign-Up Flow. The original project is available at https://www.figma.com/design/p2CMhFVFpmVtXlN6gByuyt/User-Friendly-Sign-Up-Flow.
+  `cd be` <br> 
+  `python -m venv .venv` <br>
+  `.venv\Scripts\Activate.ps1` HOẶC `.venv\bin\activate`<br>
+  `pip install -r requirements.txt`<br>
+  `python app.py`
 
-  ## Running the code
-  đầu tiên cd admin-fe rồi mới dùng npm i
-  Run `npm i` to install the dependencies.
+# Chạy app
+  `cd FE` <br>
+
+  Run `npm i` to install the dependencies. <br>
 
   Run `npm run dev` to start the development server.
-  
-  \\update
-  đã thêm FE của student
-  sửa Tutor ở trong src/components/pages/ file.tsx cần sửa
-  thêm code vào TutorDashboard.tsx
-  chú ý đang bị lỗi mất màu :))) con vợ làm tutor fix cái 
 
-  chạy be
-  python -m venv .venv
-  .venv\Scripts\Activate.ps1
-  python.exe -m pip install --upgrade pip
-  cd be     
-  python app.py
-=======
-run pip install -r requirements.txt
->>>>>>> 8983b9ddd2902204f77a6a4f44e958c2921016b1
